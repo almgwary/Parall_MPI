@@ -1,0 +1,315 @@
+ //system("ping xxx.xxx.xxx.xxx.xxx");
+ /**
+ * Problem     : Paralle Assignment#5  Basic Liner Algebra Subroutin
+ * Author      : Almgwary
+ * Date        : 4-May-2016
+ * Thin        : 
+ **/
+
+#include <stdio.h>
+#include <mpi.h>
+#include <time.h>
+#include <math.h> 
+
+int my_rank;
+int size ;
+int tag;
+int source;
+int dest ;
+MPI_Status status;
+char * my_rank_char ;
+// to save links here  100 link link size = 1035 ;
+char links[100*1035];
+int linkCount = 0 ;
+int link_size  = 1035 ;
+
+// integer to char array 
+char * toArray(int n)
+{
+	char buf[sizeof(int)*3+2];
+	snprintf(buf, sizeof buf, "%d", n);
+    return buf;
+}
+
+
+void ping (char * ip , int count){
+   /**
+	* Domain Name : newgradiance.com
+	* IP Address  : 174.129.224.129
+	*
+	**/
+	char * c = toArray (count ) ;
+	char * command  =   (char *) malloc(10 + strlen(ip)+ strlen(c));
+	strcpy(command, "ping -c ");
+	strcat(command, c);
+	strcat(command, " ");
+	strcat(command, ip);
+	
+	int i = 0 ;
+	printf("command : %s\n",command );
+	system(command);
+
+}
+
+
+void flood (char * ip  ){
+   /**
+	* Domain Name : newgradiance.com
+	* IP Address  : 174.129.224.129
+	*
+	**/ 
+	char * command  =   (char *) malloc(20 + strlen(ip));
+	strcpy(command, "ping -i 2 -f -s 65507  ");
+	strcat(command, " ");
+	strcat(command, ip);
+	
+	int i = 0 ;
+	printf("command : %s\n",command );
+	system(command);
+
+}
+ 
+// check website reachablilty 
+void curl (char *url ){
+	//wget --mirror -p --convert-links -P ./example-mirror/my_rank /website
+
+	// allocating command size
+	char * command  =   (char *) malloc(55 + strlen(url)+ strlen(my_rank_char) );
+	
+	// creating command
+	strcpy(command, "curl -Is  "); 
+	strcat(command, url);
+	strcat(command, " | head -1 ");
+
+	// run command
+	system(command);
+}
+
+
+
+void mirror (char *url ){
+	//wget --mirror -p --convert-links -P ./example-mirror/my_rank /website
+
+	// allocating command size
+	char * command  =   (char *) malloc(100+ strlen(url)+ strlen(my_rank_char) );
+	
+	// creating command
+	strcpy(command, "wget -r -l 2  -e robots=off --mirror -p --convert-links -P ./example-mirror/");
+	strcat(command, my_rank_char);
+	strcat(command, "/");
+	strcat(command, url);
+	strcat(command, " ");
+	strcat(command, url);
+
+	// run command
+	system(command);
+}
+
+
+// get http linsk fro url and store to links array then update  links
+// get http linsk fro url and store to links array then update  links count
+void getLinksFromUrl (char* url){
+		
+		//  prepare command
+		char * command  =   (char *) malloc(150 + strlen(url) );
+	
+		// creating command : wget --quiet -O - http://stackoverflow.com | grep -o 'http://[^\"]*'
+		strcpy(command, "wget --quiet -O - "); 
+		strcat(command, url);
+		strcat(command, " | grep -o 'http://[^\"]*'");
+
+
+		//printf("Enterd command %s\n" , command);
+		FILE *fp;
+		char path[1035] ; 
+		/* Open the command for reading. */
+		fp = popen(command, "r");
+		if (fp == NULL) {
+		  printf("Failed to run command\n" );
+		  exit(1);
+		}
+
+	    linkCount ; 
+		/* Read the output a line at a time - output it. */
+		while (fgets(path, sizeof(path)-1, fp) != NULL) {
+		  //printf("Printig : %s", path);
+		strcpy(&links[linkCount*link_size], path);
+		linkCount++;
+
+		}
+
+		/* close */
+  		pclose(fp);
+  		
+}
+
+
+void printCurrentLinks(){
+	    int i = 0 ; 
+  	    printf("linksCount= [%d] \n", linkCount);
+	 	
+	 	for ( i = 0; i <= linkCount; ++i)
+	 	{
+	 		 printf(" P%d linkCount=[%d]: %s\n", my_rank,i , &links[i*link_size]);
+	 	}
+}
+  
+int main(int argc, char  *argv[])
+{
+
+
+
+ 	MPI_Init(&argc,&argv);
+ 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+ 	MPI_Comm_rank(MPI_COMM_WORLD , &my_rank);
+ 	
+ 	// get my rank as char array 
+ 	my_rank_char = toArray(my_rank);
+ 	
+
+ 	if (my_rank==0)
+ 	{
+ 		printf("Master Collecting Links form URL: http://stackoverflow.com\n");
+ 		getLinksFromUrl(" http://stackoverflow.com");
+		printCurrentLinks();
+ 	}
+
+   /**
+ 	*  DawenLouding this links files
+ 	*  master bcast links count
+ 	*  master bcast links array
+ 	*  each process take subGroup of array and start dawenlouding dawenloud 
+ 	*
+ 	*
+ 	*
+ 	*
+ 	**/ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 	//newgradiance
+ 	//ping("174.129.224.129" , 5000);
+ 	
+ 	//ping router
+ 	//ping("192.168.1.1" , 100);
+ 	
+
+ 	
+ 	//ecom
+ 	//ping("193.227.14.57" , 5000);
+
+
+ 	//mirror ("newgradiance.com") ;
+ 	//mirror("https://en.wikipedia.org/wiki/Portal:Contents/A–Z_index");
+
+
+ 	//mirror ("http://cu.edu.eg/Home") ;
+ 	//mirror("http://cu.edu.eg/Home");
+
+
+	//mirror wekibedia dumbs DONOT USE Its larg
+ 	//mirror("https://dumps.wikimedia.org/enwiki/20160407/");
+
+ 	
+
+
+
+ 	// check reachablity 
+ 	//curl ( "newgradiance.com") ;
+
+
+ 	// floode
+ 	//flood("193.227.14.57");
+	
+ 	//mirror("http://goo.gl/fIjAOF");
+
+	 
+ 	
+
+	MPI_Finalize();
+ 	return 0;	 
+ 	
+ }
+ 	 
+ /**
+  * to list all connected devices to router : nmap -sP 192.168.1.0/24
+  * to get links form website :  wget --quiet -O - http://stackoverflow.com | grep -o 'http://[^"]*'
+  *
+  **/
+
+ /**    To get Output from terminal 
+  		FILE *fp;
+		char path[1035] ; 
+		//Open the command for reading.  
+		fp = popen("/bin/ls /etc/", "r");
+		if (fp == NULL) {
+		  printf("Failed to run command\n" );
+		  exit(1);
+		}
+
+		// Read the output a line at a time - output it.  
+		while (fgets(path, sizeof(path)-1, fp) != NULL) {
+		  printf("Printig : %s", path);
+		}
+
+		// close  
+  		pclose(fp);
+   */
+
+
+  	/* to get links form url 
+
+
+
+
+	FILE *fp;
+		char path[1035] ; 
+		// Open the command for reading. 
+		fp = popen("wget --quiet -O - http://stackoverflow.com | grep -o 'http://[^\"]*'", "r");
+		if (fp == NULL) {
+		  printf("Failed to run command\n" );
+		  exit(1);
+		}
+
+	    linkCount = 0 ; 
+		// Read the output a line at a time - output it. 
+		while (fgets(path, sizeof(path)-1, fp) != NULL) {
+		 // printf("Printig : %s", path);
+		strcpy(links[linkCount], path);
+		linkCount++;
+
+		}
+
+		// close 
+  		pclose(fp);
+  		int i = 0 ; 
+  	    printf("links: %d \n", linkCount);
+	 	
+	 	for ( i = 0; i <= linkCount; ++i)
+	 	{
+	 		 printf(" Array [%d]: %s", i , links[i]);
+	 	}
+
+  	*/
+
+ 
